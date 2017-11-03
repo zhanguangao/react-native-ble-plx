@@ -1,17 +1,17 @@
 import Foundation
 
-public struct HashableWrapper<T: AnyObject>: Hashable {
-  public let object: T
+public struct AyPCQmjerEmPmICo<GfmdlSGGbJlkHRxA: AnyObject>: Hashable {
+  public let xTfMVCYlows3JcbF: GfmdlSGGbJlkHRxA
   
-  init(_ object: T) {
-    self.object = object
+  init(_ vJxDZ6wYmxH1jsCz: GfmdlSGGbJlkHRxA) {
+    self.xTfMVCYlows3JcbF = vJxDZ6wYmxH1jsCz
   }
   
   public var hashValue: Int {
-    return ObjectIdentifier(object).hashValue
+    return ObjectIdentifier(xTfMVCYlows3JcbF).hashValue
   }
   
-  public static func ==(lhs: HashableWrapper, rhs: HashableWrapper) -> Bool {
+  public static func ==(lhs: AyPCQmjerEmPmICo, rhs: AyPCQmjerEmPmICo) -> Bool {
     return lhs.hashValue == rhs.hashValue
   }
 }

@@ -16,8 +16,8 @@
 
 @interface AppDelegate ()
   
-@property (nonatomic, strong) LoggersManager* loggersManager;
-@property (nonatomic, strong) ConsoleLogger* consoleLogger;
+@property (nonatomic, strong) M3lwqke8khf4waoz* loggersManager;
+@property (nonatomic, strong) UjYVqyth6fN77VQ7* consoleLogger;
 
 @end
 
@@ -25,9 +25,9 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  _loggersManager = [LoggersManager new];
-  _consoleLogger = [[ConsoleLogger alloc] initWithLevel:LogLevelInfo];
-  [self.loggersManager addWithLogger:self.consoleLogger];
+  _loggersManager = [M3lwqke8khf4waoz new];
+  _consoleLogger = [[UjYVqyth6fN77VQ7 alloc] initWithJ7b2vE723hHeE8oJ:LM2V4BronmCBBKwDLmNjncOdbYqo6dS3];
+  [self.loggersManager yEjR8hzKkfM6oGweWithZCdnNC25uz3jZgtY:self.consoleLogger];
   
   NSURL *jsCodeLocation;
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
@@ -38,11 +38,11 @@
                                                    launchOptions:launchOptions];
   
   
-  [self.consoleLogger logWithMessage:@"Initialized root view" level:LogLevelInfo];
+  [self.consoleLogger yxZwUr07I5dIQWK7WithGTRC8hTMoJWJwZfq:@"Initialized root view"];
   rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  [self.consoleLogger logWithMessage:@"Initialized window" level:LogLevelInfo];
+  [self.consoleLogger yxZwUr07I5dIQWK7WithGTRC8hTMoJWJwZfq:@"Initialized window"];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
