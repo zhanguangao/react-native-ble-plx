@@ -11,6 +11,7 @@ yarn add https://github.com/zhanguangao/react-native-ble-plx.git
 ##### npm安装：
 npm install git+https://git@github.com/zhanguangao/react-native-ble-plx.git
 
+#### [react-native-ble-plx使用示例](https://github.com/zhanguangao/react-native-ble-plx-demo)
 
 <p align="center">
   <img alt="react-native-ble-plx" src="docs/logo.png" />
