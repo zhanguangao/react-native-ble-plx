@@ -1,6 +1,6 @@
 jest.mock('../src/BleManager')
-import { BleManager } from '../src/BleManager'
-import { Device } from '../src/Device'
+const { BleManager } = require('../src/BleManager')
+const { Device } = require('../src/Device')
 
 describe("Test if Device is properly calling BleManager's utility function: ", () => {
   const bleManager = new BleManager()
@@ -35,8 +35,8 @@ describe("Test if Device is properly calling BleManager's utility function: ", (
   })
 
   test('discoverAllServicesAndCharacteristics', async () => {
-    await device.discoverAllServicesAndCharacteristics()
-    expect(bleManager.discoverAllServicesAndCharacteristicsForDevice).toBeCalledWith('id')
+    await device.discoverAllServicesAndCharacteristics('transaction')
+    expect(bleManager.discoverAllServicesAndCharacteristicsForDevice).toBeCalledWith('id', 'transaction')
   })
 
   test('services', async () => {
@@ -73,5 +73,10 @@ describe("Test if Device is properly calling BleManager's utility function: ", (
   test('BleManager properly requests the MTU', async () => {
     await device.requestMTU(24, 'tid')
     expect(bleManager.requestMTUForDevice).toBeCalledWith('id', 24, 'tid')
+  })
+
+  test('BleManager properly requests connection parameters', async () => {
+    await device.requestConnectionPriority(1, 'tid')
+    expect(bleManager.requestConnectionPriorityForDevice).toBeCalledWith('id', 1, 'tid')
   })
 })

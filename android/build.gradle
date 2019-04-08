@@ -1,3 +1,7 @@
+def safeExtGet(prop, fallback) {
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
 buildscript {
     repositories {
         jcenter()
@@ -7,7 +11,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.3'
+        classpath 'com.android.tools.build:gradle:3.1.4'
         classpath 'org.codehaus.groovy:groovy-android-gradle-plugin:1.1.0'
     }
 }
@@ -16,14 +20,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'groovyx.android'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.3"
+    compileSdkVersion safeExtGet('compileSdkVersion', 27)
+    buildToolsVersion safeExtGet('buildToolsVersion', '27.0.3')
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion safeExtGet('targetSdkVersion', 27)
     }
     lintOptions {
         abortOnError false
@@ -31,7 +33,12 @@ android {
 }
 
 repositories {
-    mavenCentral()
+    mavenLocal()
+    jcenter()
+    maven {
+        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+        url "$projectDir/../../../node_modules/react-native/android"
+    }
     maven {
         url 'https://maven.google.com/'
         name 'Google'
@@ -39,7 +46,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.facebook.react:react-native:+"
-    compile "com.polidea.rxandroidble:rxandroidble:1.6.0"
-    testCompile 'org.robospock:robospock:1.0.1'
+    implementation "com.facebook.react:react-native:+"
+    implementation "com.polidea.rxandroidble:rxandroidble:1.7.0"
+    testImplementation 'org.robospock:robospock:1.0.1'
 }

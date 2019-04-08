@@ -20,6 +20,8 @@ beforeEach(() => {
     cancelTransaction: jest.fn(),
     setLogLevel: jest.fn(),
     logLevel: jest.fn(),
+    enable: jest.fn(),
+    disable: jest.fn(),
     state: jest.fn(),
     startDeviceScan: jest.fn(),
     stopDeviceScan: jest.fn(),
@@ -34,6 +36,7 @@ beforeEach(() => {
     writeCharacteristicForDevice: jest.fn(),
     monitorCharacteristicForDevice: jest.fn(),
     requestMTUForDevice: jest.fn(),
+    requestConnectionPriorityForDevice: jest.fn(),
     ScanEvent: 'scan_event',
     ReadEvent: 'read_event',
     StateChangeEvent: 'state_change_event',
@@ -62,6 +65,16 @@ test('BleModule calls destroy function when destroyed', () => {
   bleManager.destroy()
   expect(Native.BleModule.createClient).toBeCalled()
   expect(Native.BleModule.destroyClient).toBeCalled()
+})
+
+test('BleModule calls enable function when enabled', async () => {
+  expect(await bleManager.enable('tid')).toBe(bleManager)
+  expect(Native.BleModule.enable).toBeCalledWith('tid')
+})
+
+test('BleModule calls disable function when disabled', async () => {
+  expect(await bleManager.disable('tid')).toBe(bleManager)
+  expect(Native.BleModule.disable).toBeCalledWith('tid')
 })
 
 test('BleModule calls setLogLevel function when logLevel is modified', () => {
@@ -216,10 +229,10 @@ test('BleManager properly calls BleModule discovery function', async () => {
   Native.BleModule.discoverAllServicesAndCharacteristicsForDevice = jest
     .fn()
     .mockReturnValueOnce(Promise.resolve({ id: 'id' }))
-  const device = await bleManager.discoverAllServicesAndCharacteristicsForDevice('id')
+  const device = await bleManager.discoverAllServicesAndCharacteristicsForDevice('id', 'tid')
   expect(device).toBeInstanceOf(Device)
   expect(device.id).toBe('id')
-  expect(Native.BleModule.discoverAllServicesAndCharacteristicsForDevice).toBeCalledWith('id')
+  expect(Native.BleModule.discoverAllServicesAndCharacteristicsForDevice).toBeCalledWith('id', 'tid')
 })
 
 test('BleManager properly calls servicesForDevice BleModule function', async () => {
@@ -320,4 +333,9 @@ test('BleManager properly handles errors while monitoring characteristic values'
 test('BleManager properly requests the MTU', async () => {
   bleManager.requestMTUForDevice('id', 99, 'trId')
   expect(Native.BleModule.requestMTUForDevice).toBeCalledWith('id', 99, 'trId')
+})
+
+test('BleManager properly requests connection priority', async () => {
+  bleManager.requestConnectionPriorityForDevice('id', 2, 'trId')
+  expect(Native.BleModule.requestConnectionPriorityForDevice).toBeCalledWith('id', 2, 'trId')
 })

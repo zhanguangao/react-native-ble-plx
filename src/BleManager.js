@@ -4,7 +4,7 @@
 import { Device } from './Device'
 import { Service } from './Service'
 import { Characteristic } from './Characteristic'
-import { State, LogLevel, type BleErrorCodeMessageMapping } from './TypeDefinition'
+import { State, LogLevel, type BleErrorCodeMessageMapping, ConnectionPriority } from './TypeDefinition'
 import { BleModule, EventEmitter } from './BleModule'
 import {
   parseBleError,
@@ -223,6 +223,34 @@ export class BleManager {
   // Mark: Monitoring state --------------------------------------------------------------------------------------------
 
   /**
+   * Enable Bluetooth. This function blocks until BLE is in PoweredOn state. [Android only]
+   *
+   * @param {?TransactionId} transactionId Transaction handle used to cancel operation
+   * @returns {Promise<BleManager>} Promise completes when state transition was successful.
+   */
+  async enable(transactionId: ?TransactionId): Promise<BleManager> {
+    if (!transactionId) {
+      transactionId = this._nextUniqueID()
+    }
+    await this._callPromise(BleModule.enable(transactionId))
+    return this
+  }
+
+  /**
+   * Disable Bluetooth. This function blocks until BLE is in PoweredOff state. [Android only]
+   *
+   * @param {?TransactionId} transactionId Transaction handle used to cancel operation
+   * @returns {Promise<BleManager>} Promise completes when state transition was successful.
+   */
+  async disable(transactionId: ?TransactionId): Promise<BleManager> {
+    if (!transactionId) {
+      transactionId = this._nextUniqueID()
+    }
+    await this._callPromise(BleModule.disable(transactionId))
+    return this
+  }
+
+  /**
    * Current, global {@link State} of a {@link BleManager}. All APIs are working only when active state
    * is "PoweredOn".
    *
@@ -328,6 +356,29 @@ export class BleManager {
   }
 
   /**
+   * Request a connection parameter update. This functions may update connection parameters on Android API level 21 or
+   * above.
+   *
+   * @param {DeviceId} deviceIdentifier Device identifier.
+   * @param {ConnectionPriority} connectionPriority: Connection priority.
+   * @param {?TransactionId} transactionId Transaction handle used to cancel operation.
+   * @returns {Promise<Device>} Connected device.
+   */
+  async requestConnectionPriorityForDevice(
+    deviceIdentifier: DeviceId,
+    connectionPriority: $Values<typeof ConnectionPriority>,
+    transactionId: ?TransactionId
+  ): Promise<Device> {
+    if (!transactionId) {
+      transactionId = this._nextUniqueID()
+    }
+    const nativeDevice = await this._callPromise(
+      BleModule.requestConnectionPriorityForDevice(deviceIdentifier, connectionPriority, transactionId)
+    )
+    return new Device(nativeDevice, this)
+  }
+
+  /**
    * Reads RSSI for connected device.
    *
    * @param {DeviceId} deviceIdentifier Device identifier.
@@ -361,8 +412,9 @@ export class BleManager {
   // Mark: Connection management ---------------------------------------------------------------------------------------
 
   /**
-   * Returns a list of known peripherals by their identifiers.
+   * Returns a list of known devices by their identifiers.
    * @param {Array<DeviceId>} deviceIdentifiers List of device identifiers.
+   * @returns {Promise<Array<Device>>} List of known devices by their identifiers.
    */
   async devices(deviceIdentifiers: Array<DeviceId>): Promise<Array<Device>> {
     const nativeDevices = await this._callPromise(BleModule.devices(deviceIdentifiers))
@@ -376,6 +428,7 @@ export class BleManager {
    * which have discovered services. Returned devices **may not be connected** to your application. Make sure to check
    * if that's the case with function {@link #blemanagerisdeviceconnected|isDeviceConnected}.
    * @param {Array<UUID>} serviceUUIDs List of service UUIDs. Device must contain at least one of them to be listed.
+   * @returns {Promise<Array<Device>>} List of known devices with discovered services as stated in the parameter.
    */
   async connectedDevices(serviceUUIDs: Array<UUID>): Promise<Array<Device>> {
     const nativeDevices = await this._callPromise(BleModule.connectedDevices(serviceUUIDs))
@@ -414,7 +467,8 @@ export class BleManager {
    *
    * @param {DeviceId} deviceIdentifier {@link Device} identifier to be monitored.
    * @param {function(error: ?BleError, device: Device)} listener - callback returning error as a reason of disconnection
-   * if available and {@link Device} object.
+   * if available and {@link Device} object. If an error is null, that means the connection was terminated by
+   * {@link #blemanagercanceldeviceconnection|bleManager.cancelDeviceConnection()} call.
    * @returns {Subscription} Subscription on which `remove()` function can be called to unsubscribe.
    */
   onDeviceDisconnected(deviceIdentifier: DeviceId, listener: (error: ?BleError, device: Device) => void): Subscription {
@@ -457,12 +511,19 @@ export class BleManager {
    * Discovers all {@link Service}s and {@link Characteristic}s for {@link Device}.
    *
    * @param {DeviceId} deviceIdentifier {@link Device} identifier.
+   * @param {?TransactionId} transactionId Transaction handle used to cancel operation
    * @returns {Promise<Device>} Promise which emits {@link Device} object if all available services and
    * characteristics have been discovered.
    */
-  async discoverAllServicesAndCharacteristicsForDevice(deviceIdentifier: DeviceId): Promise<Device> {
+  async discoverAllServicesAndCharacteristicsForDevice(
+    deviceIdentifier: DeviceId,
+    transactionId: ?TransactionId
+  ): Promise<Device> {
+    if (!transactionId) {
+      transactionId = this._nextUniqueID()
+    }
     const nativeDevice = await this._callPromise(
-      BleModule.discoverAllServicesAndCharacteristicsForDevice(deviceIdentifier)
+      BleModule.discoverAllServicesAndCharacteristicsForDevice(deviceIdentifier, transactionId)
     )
     return new Device(nativeDevice, this)
   }

@@ -2,7 +2,7 @@
 'use strict'
 
 import { NativeModules, NativeEventEmitter } from 'react-native'
-import { State, LogLevel } from './TypeDefinition'
+import { State, LogLevel, ConnectionPriority } from './TypeDefinition'
 import type {
   DeviceId,
   Identifier,
@@ -230,6 +230,24 @@ export interface BleModuleInterface {
   // Monitoring state
 
   /**
+   * Enable Bluetooth. This function blocks until BLE is in PoweredOn state. [Android only]
+   *
+   * @param {TransactionId} transactionId Transaction handle used to cancel operation
+   * @returns {Promise<void>} Promise completes when state transition was successful.
+   * @private
+   */
+  enable(transactionId: TransactionId): Promise<void>;
+
+  /**
+   * Disable Bluetooth. This function blocks until BLE is in PoweredOff state. [Android only]
+   *
+   * @param {TransactionId} transactionId Transaction handle used to cancel operation
+   * @returns {Promise<void>} Promise completes when state transition was successful.
+   * @private
+   */
+  disable(transactionId: TransactionId): Promise<void>;
+
+  /**
    * Current state of BLE device.
    *
    * @returns {Promise<State>} Current state of BLE device.
@@ -258,6 +276,22 @@ export interface BleModuleInterface {
   // Device operations
 
   /**
+   * Request a connection parameter update. This functions may update connection parameters on Android API level 21 or
+   * above.
+   *
+   * @param {DeviceId} deviceIdentifier Device identifier.
+   * @param {ConnectionPriority} connectionPriority: Connection priority.
+   * @param {TransactionId} transactionId Transaction handle used to cancel operation.
+   * @returns {Promise<NativeDevice>} Connected device.
+   * @private
+   */
+  requestConnectionPriorityForDevice(
+    deviceIdentifier: DeviceId,
+    connectionPriority: $Values<typeof ConnectionPriority>,
+    transactionId: TransactionId
+  ): Promise<NativeDevice>;
+
+  /**
    * Reads RSSI for connected device.
    *
    * @param {DeviceId} deviceIdentifier Device identifier.
@@ -283,6 +317,8 @@ export interface BleModuleInterface {
   /**
    * Returns a list of known peripherals by their identifiers.
    * @param {Array<DeviceId>} deviceIdentifiers List of device identifiers
+   * @returns {Promise<Array<NativeDevice>>} List of known devices by their identifiers.
+   * @private
    */
   devices(deviceIdentifiers: Array<DeviceId>): Promise<Array<NativeDevice>>;
 
@@ -290,6 +326,8 @@ export interface BleModuleInterface {
    * Returns a list of the peripherals (containing any of the specified services) currently connected to the system
    * which have discovered services. Returned devices **may not be connected** to your application.
    * @param {Array<UUID>} serviceUUIDs List of service UUIDs. Device must contain at least one of them to be listed.
+   * @returns {Promise<Array<NativeDevice>>} List of known devices with discovered services as stated in the parameter.
+   * @private
    */
   connectedDevices(serviceUUIDs: Array<UUID>): Promise<Array<NativeDevice>>;
 
@@ -329,10 +367,14 @@ export interface BleModuleInterface {
    * Discovers all services and characteristics for specified device.
    *
    * @param {DeviceId} deviceIdentifier Connected device identifier.
+   * @param {TransactionId} transactionId Transaction handle used to cancel operation
    * @returns {Promise<NativeDevice>} Device which has discovered characteristics and services.
    * @private
    */
-  discoverAllServicesAndCharacteristicsForDevice(deviceIdentifier: DeviceId): Promise<NativeDevice>;
+  discoverAllServicesAndCharacteristicsForDevice(
+    deviceIdentifier: DeviceId,
+    transactionId: TransactionId
+  ): Promise<NativeDevice>;
 
   // Service and characteristic getters
 

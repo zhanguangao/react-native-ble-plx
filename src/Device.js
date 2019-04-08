@@ -1,10 +1,11 @@
 // @flow
 'use strict'
 
-import { BleManager } from './BleManager'
-import { BleError } from './BleError'
-import { Characteristic } from './Characteristic'
-import { Service } from './Service'
+import type { BleManager } from './BleManager'
+import type { BleError } from './BleError'
+import type { Characteristic } from './Characteristic'
+import type { Service } from './Service'
+import { ConnectionPriority } from './TypeDefinition'
 import type { NativeDevice } from './BleModule'
 import type { DeviceId, Base64, UUID, Subscription, TransactionId, ConnectionOptions } from './TypeDefinition'
 
@@ -94,6 +95,20 @@ export class Device implements NativeDevice {
   }
 
   /**
+   * {@link #blemanagerrequestconnectionpriorityfordevice|bleManager.requestConnectionPriorityForDevice()} with partially filled arguments.
+   *
+   * @param {ConnectionPriority} connectionPriority: Connection priority.
+   * @param {?TransactionId} transactionId Transaction handle used to cancel operation.
+   * @returns {Promise<Device>} Connected device.
+   */
+  requestConnectionPriority(
+    connectionPriority: $Values<typeof ConnectionPriority>,
+    transactionId: ?TransactionId
+  ): Promise<Device> {
+    return this._manager.requestConnectionPriorityForDevice(this.id, connectionPriority, transactionId)
+  }
+
+  /**
    * {@link #blemanagerreadrssifordevice|bleManager.readRSSIForDevice()} with partially filled arguments.
    *
    * @param {?TransactionId} transactionId Transaction handle used to cancel operation.
@@ -145,7 +160,8 @@ export class Device implements NativeDevice {
    * {@link #blemanagerondevicedisconnected|bleManager.onDeviceDisconnected()} with partially filled arguments.
    *
    * @param {function(error: ?BleError, device: Device)} listener callback returning error as a reason of disconnection
-   *                                                              if available and {@link Device} object.
+   * if available and {@link Device} object. If an error is null, that means the connection was terminated by
+   * {@link #blemanagercanceldeviceconnection|bleManager.cancelDeviceConnection()} call.
    * @returns {Subscription} Subscription on which `remove()` function can be called to unsubscribe.
    */
   onDisconnected(listener: (error: ?BleError, device: Device) => void): Subscription {
@@ -155,11 +171,12 @@ export class Device implements NativeDevice {
   /**
    * {@link #blemanagerdiscoverallservicesandcharacteristicsfordevice|bleManager.discoverAllServicesAndCharacteristicsForDevice()} with partially filled arguments.
    *
+   * @param {?TransactionId} transactionId Transaction handle used to cancel operation
    * @returns {Promise<Device>} Promise which emits {@link Device} object if all available services and
    * characteristics have been discovered.
    */
-  discoverAllServicesAndCharacteristics(): Promise<Device> {
-    return this._manager.discoverAllServicesAndCharacteristicsForDevice(this.id)
+  discoverAllServicesAndCharacteristics(transactionId: ?TransactionId): Promise<Device> {
+    return this._manager.discoverAllServicesAndCharacteristicsForDevice(this.id, transactionId)
   }
 
   /**

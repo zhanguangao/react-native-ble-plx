@@ -74,6 +74,22 @@ RCT_EXPORT_METHOD(destroyClient) {
 
 // Mark: Monitoring state ----------------------------------------------------------------------------------------------
 
+RCT_EXPORT_METHOD(   enable:(NSString*)transactionId
+                   resolver:(RCTPromiseResolveBlock)resolve
+                   rejecter:(RCTPromiseRejectBlock)reject) {
+    [_manager enable:transactionId
+             resolve:resolve
+              reject:reject];
+}
+
+RCT_EXPORT_METHOD(   disable:(NSString*)transactionId
+                    resolver:(RCTPromiseResolveBlock)resolve
+                    rejecter:(RCTPromiseRejectBlock)reject) {
+    [_manager disable:transactionId
+              resolve:resolve
+               reject:reject];
+}
+
 RCT_EXPORT_METHOD(   state:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     [_manager state:resolve
@@ -89,6 +105,18 @@ RCT_EXPORT_METHOD(startDeviceScan:(NSArray*)filteredUUIDs
 
 RCT_EXPORT_METHOD(stopDeviceScan) {
     [_manager stopDeviceScan];
+}
+
+RCT_EXPORT_METHOD(requestConnectionPriorityForDevice:(NSString*)deviceIdentifier
+                                  connectionPriority:(NSInteger)connectionPriority
+                                       transactionId:(NSString*)transactionId
+                                            resolver:(RCTPromiseResolveBlock)resolve
+                                            rejecter:(RCTPromiseRejectBlock)reject) {
+    [_manager requestConnectionPriorityForDevice:deviceIdentifier
+                              connectionPriority:connectionPriority
+                                   transactionId:transactionId
+                                         resolve:resolve
+                                          reject:reject];
 }
 
 RCT_EXPORT_METHOD(readRSSIForDevice:(NSString*)deviceIdentifier
@@ -162,9 +190,11 @@ RCT_EXPORT_METHOD(isDeviceConnected:(NSString*)deviceIdentifier
 // Mark: Discovery -----------------------------------------------------------------------------------------------------
 
 RCT_EXPORT_METHOD(discoverAllServicesAndCharacteristicsForDevice:(NSString*)deviceIdentifier
+                                                   transactionId:(NSString*)transactionId
                                                         resolver:(RCTPromiseResolveBlock)resolve
                                                         rejecter:(RCTPromiseRejectBlock)reject) {
     [_manager discoverAllServicesAndCharacteristicsForDevice:deviceIdentifier
+                                               transactionId:transactionId
                                                      resolve:resolve
                                                       reject:reject];
 }

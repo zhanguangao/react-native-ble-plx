@@ -137,6 +137,16 @@ public class BleClientManager : NSObject {
 
     // Mark: Monitoring state ------------------------------------------------------------------------------------------
 
+    @objc
+    public func enable(_ transactionId: String, resolve: Resolve, reject: Reject) {
+        BleError(errorCode: .BluetoothStateChangeFailed).callReject(reject)
+    }
+
+    @objc
+    public func disable(_ transactionId: String, resolve: Resolve, reject: Reject) {
+        BleError(errorCode: .BluetoothStateChangeFailed).callReject(reject)
+    }
+
     // Retrieve current BleManager's state.
     @objc
     public func state(_ resolve: Resolve, reject: Reject) {
@@ -275,13 +285,33 @@ public class BleClientManager : NSObject {
         resolve(peripheral.asJSObject())
     }
 
+    @objc
+    public func requestConnectionPriorityForDevice(_ deviceIdentifier: String,
+                                                   connectionPriority: Int,
+                                                        transactionId: String,
+                                                              resolve: @escaping Resolve,
+                                                               reject: @escaping Reject) {
+
+        guard let deviceId = UUID(uuidString: deviceIdentifier) else {
+            BleError.invalidIdentifiers(deviceIdentifier).callReject(reject)
+            return
+        }
+
+        guard let peripheral = connectedPeripherals[deviceId] else {
+            BleError.peripheralNotConnected(deviceIdentifier).callReject(reject)
+            return
+        }
+
+        resolve(peripheral.asJSObject())
+    }
+
     // Mark: Device management -----------------------------------------------------------------------------------------
 
     @objc
     public func devices(_ deviceIdentifiers: [String],
                                     resolve: @escaping Resolve,
                                      reject: @escaping Reject) {
-        let uuids = deviceIdentifiers.flatMap { UUID(uuidString: $0) }
+        let uuids = deviceIdentifiers.compactMap { UUID(uuidString: $0) }
         if (uuids.count != deviceIdentifiers.count) {
             BleError.invalidIdentifiers(deviceIdentifiers).callReject(reject)
             return
@@ -302,7 +332,7 @@ public class BleClientManager : NSObject {
     public func connectedDevices(_ serviceUUIDs: [String],
                                         resolve: @escaping Resolve,
                                          reject: @escaping Reject) {
-        let uuids = serviceUUIDs.flatMap { $0.toCBUUID() }
+        let uuids = serviceUUIDs.compactMap { $0.toCBUUID() }
         if (uuids.count != serviceUUIDs.count) {
             BleError.invalidIdentifiers(serviceUUIDs).callReject(reject)
             return
@@ -457,6 +487,7 @@ public class BleClientManager : NSObject {
     // user should discover all services and characteristics for peripheral.
     @objc
     public func discoverAllServicesAndCharacteristicsForDevice(_ deviceIdentifier: String,
+                                                                    transactionId: String,
                                                                           resolve: @escaping Resolve,
                                                                            reject: @escaping Reject) {
 
@@ -470,7 +501,13 @@ public class BleClientManager : NSObject {
             return
         }
 
-        _ = peripheral
+        safeDiscoverAllServicesAndCharacteristicsForDevice(peripheral, transactionId: transactionId, promise: SafePromise(resolve: resolve, reject: reject))
+    }
+
+    func safeDiscoverAllServicesAndCharacteristicsForDevice(_ peripheral: Peripheral,
+                                                           transactionId: String,
+                                                                 promise: SafePromise) {
+        let disposable = peripheral
             .discoverServices(nil)
             .flatMap { [weak self] services -> Observable<Service> in
                 for service in services {
@@ -485,9 +522,15 @@ public class BleClientManager : NSObject {
                         self?.discoveredCharacteristics[characteristic.jsIdentifier] = characteristic
                     }
                 },
-                onError: { error in error.bleError.callReject(reject) },
-                onCompleted: { resolve(peripheral.asJSObject()) }
-            )
+                onError: { error in error.bleError.callReject(promise) },
+                onCompleted: { promise.resolve(peripheral.asJSObject()) },
+                onDisposed: { [weak self] in
+                    self?.transactions.removeDisposable(transactionId)
+                    BleError.cancelled().callReject(promise)
+                }
+        )
+
+        transactions.replaceDisposable(transactionId, disposable: disposable)
     }
 
     // Mark: Service and characteristic getters ------------------------------------------------------------------------
