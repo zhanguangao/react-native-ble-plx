@@ -49,6 +49,7 @@ enum BleErrorCode : Int {
     case DescriptorNotFound = 503
     case DescriptorsNotDiscovered = 504
     case DescriptorInvalidDataFormat = 505
+    case DescriptorWriteNotAllowed = 506
 
     case ScanStartFailed = 600
     case LocationServicesDisabled = 601
@@ -291,11 +292,16 @@ extension BleError {
     static func peripheralNotFound(_ uuid: String) -> BleError { return BleError(errorCode: .DeviceNotFound, deviceID: uuid) }
     static func peripheralNotConnected(_ uuid: String) -> BleError { return BleError(errorCode: .DeviceNotConnected, deviceID: uuid) }
     static func characteristicNotFound(_ uuid: String) -> BleError { return BleError(errorCode: .CharacteristicNotFound, characteristicUUID: uuid) }
+    static func descriptorNotFound(_ uuid: String) -> BleError { return BleError(errorCode: .DescriptorNotFound, descriptorUUID: uuid) }
+
     static func invalidWriteDataForCharacteristic(_ uuid: String, data: String) -> BleError {
         return BleError(errorCode: .CharacteristicInvalidDataFormat, characteristicUUID: uuid, internalMessage: data)
     }
     static func invalidWriteDataForDescriptor(_ uuid: String, data: String) -> BleError {
         return BleError(errorCode: .DescriptorInvalidDataFormat, characteristicUUID: uuid, internalMessage: data)
+    }
+    static func descriptorWriteNotAllowed(_ uuid: String) -> BleError {
+        return BleError(errorCode: .DescriptorWriteNotAllowed, descriptorUUID: uuid)
     }
     static func serviceNotFound(_ uuid: String) -> BleError { return BleError(errorCode: .ServiceNotFound, serviceUUID: uuid) }
 }
